@@ -1,0 +1,9 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "React Graphql client",
+  "main": "index.js",
+  "repository": "https://github.com/nori3506/react-apollo-graphql.git",
+  "author": "Nori <loveandfight2186@yahoo.co.jp>",
+  "license": "MIT"
+}

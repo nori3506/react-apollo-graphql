@@ -1,15 +1,16 @@
 import { gql } from "apollo-server-express";
+import { find } from "lodash";
 
 const contacts = [
   {
     id: "1",
-    firstName: "Nori",
-    lastName: "Nishi",
+    firstName: "Noris",
+    lastName: "Nishiyama",
   },
   {
     id: "2",
     firstName: "Paul",
-    lastName: "One",
+    lastName: "Jordan",
   },
   {
     id: "3",
@@ -26,13 +27,44 @@ const typeDefs = gql`
   }
 
   type Query {
+    contact(id: String!): Contact
     contacts: [Contact]
+  }
+
+  type Mutation {
+    addContact(id: String!, firstName: String!, lastName: String!): Contact
+    updateContact(id: String, firstName: String!, lastName: String!): Contact
   }
 `;
 
 const resolvers = {
   Query: {
+    contact(parent, args, context, info) {
+      return find(contacts, { id: args.id });
+    },
     contacts: () => contacts,
+  },
+  Mutation: {
+    addContact: (root, args) => {
+      const newContact = {
+        id: args.id,
+        firstName: args.firstName,
+        lastName: args.lastName,
+      };
+      contacts.push(newContact);
+      return newContact;
+    },
+    updateContact: (root, args) => {
+      const contact = find(contacts, { id: args.id });
+      if (!contact) {
+        throw new Error(`Couldn't find contact with id ${args.id}`);
+      }
+
+      contact.firstName = args.firstName;
+      contact.lastName = args.lastName;
+
+      return contact;
+    },
   },
 };
 

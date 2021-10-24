@@ -1,15 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button } from "antd";
-const Addcontact = () => {
+import { useMutation } from "@apollo/client";
+import { v4 as uuidv4 } from "uuid";
+import { ADD_CONTACT, GET_CONTACTS } from "../../queries";
+
+const AddContact = () => {
+  const [id] = useState(uuidv4());
   const [form] = Form.useForm();
   const [, forceUpdate] = useState();
+  const [addContact] = useMutation(ADD_CONTACT);
+
   useEffect(() => {
     forceUpdate({});
   }, []);
+  const onFinish = (values) => {
+    const { firstName, lastName } = values;
+    addContact({
+      variables: {
+        id,
+        firstName,
+        lastName,
+      },
+      optimisticResponse: {
+        __typename: "Mutation",
+        addContact: {
+          __typename: "Contact",
+          id,
+          firstName,
+          lastName,
+        },
+      },
+      update: (proxy, { data: { addContact } }) => {
+        const data = proxy.readQuery({ query: GET_CONTACTS });
+        proxy.writeQuery({
+          query: GET_CONTACTS,
+          data: {
+            ...data,
+            contacts: [...data.contacts, addContact],
+          },
+        });
+      },
+    });
+  };
 
   return (
     <Form
       form={form}
+      onFinish={onFinish}
       name="add-contact-form"
       layout="inline"
       size="large"
@@ -34,8 +71,8 @@ const Addcontact = () => {
             type="primary"
             htmlType="submit"
             disabled={
-              !form.isFieldTouched(true) ||
-              form.getFieldError().filter(({ errors }) => errors.length)
+              !form.isFieldsTouched(true) ||
+              form.getFieldsError().filter(({ errors }) => errors.length).length
             }
           >
             Add Contact
@@ -46,4 +83,4 @@ const Addcontact = () => {
   );
 };
 
-export default Addcontact;
+export default AddContact;
